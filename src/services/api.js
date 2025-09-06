@@ -1,9 +1,13 @@
 import axios from 'axios';
 import keycloak from '../keycloak';
 
+
+//    The base URL should NOT include any paths like /api.
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080';
+
 // Create an Axios instance
 const api = axios.create({
-  baseURL: process.env.REACT_APP_API_BASE_URL || 'http://localhost:8080/api',
+  baseURL: `${API_BASE_URL}/api`,
 });
 
 // Use an interceptor to inject the token into every request
