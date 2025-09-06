@@ -1,41 +1,43 @@
 import React, { useState, useEffect } from 'react';
+import { Routes, Route } from 'react-router-dom';
 import keycloak from './keycloak';
-import Notes from './components/Notes';
+import Layout from './components/Layout';
+import HomePage from './pages/HomePage';
+import DashboardPage from './pages/DashboardPage';
+import PublicNotePage from './pages/PublicNotePage';
+import PrivateRoute from './components/PrivateRoute';
 
 function App() {
-    const [authenticated, setAuthenticated] = useState(false);
+  const [auth, setAuth] = useState({ keycloak: null, authenticated: false });
 
-    useEffect(() => {
-      // The Keycloak init logic remains the same
-      keycloak.init({ onLoad: 'login-required', pkceMethod: 'S256' }).then(auth => {
-          if (auth) {
-              setAuthenticated(true);
-              console.log("Authenticated successfully");
-          }
-      }).catch(error => {
-          console.error("Authentication failed", error);
-      });
-      // We have removed the setInterval logic as it's no longer needed.
-      // The token is now refreshed on-demand by the Axios interceptor.
+  useEffect(() => {
+    keycloak.init({ onLoad: 'check-sso', pkceMethod: 'S256' })
+      .then(authenticated => {
+        setAuth({ keycloak: keycloak, authenticated: authenticated });
+      })
+      .catch(error => console.error("Authentication failed", error));
   }, []);
 
-    const handleLogout = () => {
-        keycloak.logout();
-    };
+  if (!auth.keycloak) {
+    return <div>Loading Keycloak...</div>;
+  }
 
-    if (!authenticated) {
-        return <div>Loading or authenticating...</div>;
-    }
-
-    return (
-        <div>
-            <h1>My Notes</h1>
-            <p>Welcome, {keycloak.tokenParsed.preferred_username}</p>
-            <button onClick={handleLogout}>Logout</button>
-            <hr />
-            <Notes />
-        </div>
-    );
+  return (
+    <Layout auth={auth}>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route
+          path="/dashboard"
+          element={
+            <PrivateRoute auth={auth}>
+              <DashboardPage />
+            </PrivateRoute>
+          }
+        />
+        <Route path="/note/public/:shareableId" element={<PublicNotePage />} />
+      </Routes>
+    </Layout>
+  );
 }
 
 export default App;
