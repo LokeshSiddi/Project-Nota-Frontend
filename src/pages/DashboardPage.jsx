@@ -8,14 +8,15 @@ import {
 } from '../services/noteService';
 import NoteEditor from '../components/NoteEditor';
 import NoteList from '../components/NoteList';
+import { Plus } from 'lucide-react';
 
 const DashboardPage = () => {
   const [notes, setNotes] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const [editingNote, setEditingNote] = useState(null); // Tracks which note is being edited
+  const [isEditorOpen, setIsEditorOpen] = useState(false);
+  const [editingNote, setEditingNote] = useState(null);
 
-  // --- Data Fetching ---
   const fetchNotes = async () => {
     try {
       setLoading(true);
@@ -33,24 +34,27 @@ const DashboardPage = () => {
     fetchNotes();
   }, []);
 
-  // --- CRUD and Share Logic ---
-  const handleCreateNote = async (noteData) => {
-    try {
-      await createNote(noteData);
-      fetchNotes(); // Refresh list
-    } catch (err) {
-      alert('Failed to create note.');
-    }
+  const handleOpenEditor = (note = null) => {
+    setEditingNote(note);
+    setIsEditorOpen(true);
   };
 
-  const handleUpdateNote = async (noteData) => {
-    if (!editingNote) return;
+  const handleCloseEditor = () => {
+    setIsEditorOpen(false);
+    setEditingNote(null);
+  };
+
+  const handleSaveNote = async (noteData) => {
     try {
-      await updateNote(editingNote.id, noteData);
-      setEditingNote(null); // Exit editing mode
-      fetchNotes(); // Refresh list
+      if (editingNote) {
+        await updateNote(editingNote.id, noteData);
+      } else {
+        await createNote(noteData);
+      }
+      handleCloseEditor();
+      fetchNotes();
     } catch (err) {
-      alert('Failed to update note.');
+      alert(`Failed to save note: ${err.message}`);
     }
   };
 
@@ -58,7 +62,7 @@ const DashboardPage = () => {
     if (window.confirm('Are you sure you want to delete this note?')) {
       try {
         await deleteNote(id);
-        fetchNotes(); // Refresh list
+        fetchNotes();
       } catch (err) {
         alert('Failed to delete note.');
       }
@@ -75,35 +79,44 @@ const DashboardPage = () => {
       } else {
         alert(response.data.message || 'Note sharing status updated.');
       }
-      fetchNotes(); // Refresh list
+      fetchNotes();
     } catch (err) {
       alert('Failed to share note.');
     }
   };
 
-  // --- Render ---
-  if (loading) return <div>Loading notes...</div>;
-  if (error) return <p className="error">{error}</p>;
+  if (loading) return <div className="loading-state">Loading your notes...</div>;
+  if (error) return <div className="error-state">{error}</div>;
 
   return (
-    <div className="page-content">
-      {/* Conditionally render the editor for creating or updating */}
-      {editingNote ? (
-        <NoteEditor
-          onSubmit={handleUpdateNote}
-          noteToEdit={editingNote}
-          onCancel={() => setEditingNote(null)}
-        />
-      ) : (
-        <NoteEditor onSubmit={handleCreateNote} />
-      )}
-      <hr />
+    <div className="dashboard-container">
+      <header className="dashboard-header">
+        <input type="text" placeholder="Search Notes..." className="search-input" />
+        <div className="tabs">
+          <button className="tab-button active">Notes</button>
+          <button className="tab-button">Lists</button>
+          <button className="tab-button">Recording</button>
+        </div>
+      </header>
+
       <NoteList
         notes={notes}
-        onEdit={setEditingNote} // Pass the function to start editing
+        onEdit={handleOpenEditor}
         onDelete={handleDeleteNote}
         onShare={handleShareNote}
       />
+
+      <button className="add-note-fab" onClick={() => handleOpenEditor()}>
+        <Plus size={28} />
+      </button>
+
+      {isEditorOpen && (
+        <NoteEditor
+          noteToEdit={editingNote}
+          onSubmit={handleSaveNote}
+          onCancel={handleCloseEditor}
+        />
+      )}
     </div>
   );
 };

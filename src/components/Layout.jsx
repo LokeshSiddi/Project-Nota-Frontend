@@ -1,32 +1,33 @@
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
+import { Home, Plus, User } from 'lucide-react';
 
 const Layout = ({ auth, children }) => {
-  const { keycloak, authenticated } = auth;
+  const { authenticated } = auth;
+  const location = useLocation();
 
-  const handleLogin = () => keycloak.login();
-  const handleLogout = () => keycloak.logout();
+  const showNav = authenticated && location.pathname.startsWith('/dashboard');
 
   return (
-    <div className="container">
-      <header>
-        <Link to="/" style={{ textDecoration: 'none', color: '#5a67d8' }}>
-          <h1>📝 My Notes App</h1>
-        </Link>
-        <nav>
-          {authenticated ? (
-            <div>
-              <span>Welcome, <strong>{keycloak.tokenParsed.preferred_username}</strong></span>
-              <button onClick={handleLogout}>Logout</button>
-            </div>
-          ) : (
-            <button onClick={handleLogin}>Login</button>
-          )}
-        </nav>
-      </header>
-      <main>
+    <div className="app-container">
+      <main className="main-content">
         {children}
       </main>
+      {showNav && (
+        <nav className="bottom-nav">
+          <Link to="/dashboard" className="nav-item active">
+            <Home size={24} />
+            <span>Home</span>
+          </Link>
+          <div className="nav-item">
+            {/* The FAB is separate, so this is a placeholder */}
+          </div>
+          <Link to="/profile" className="nav-item">
+            <User size={24} />
+            <span>Profile</span>
+          </Link>
+        </nav>
+      )}
     </div>
   );
 };

@@ -11,7 +11,11 @@ function App() {
   const [auth, setAuth] = useState({ keycloak: null, authenticated: false });
 
   useEffect(() => {
-    keycloak.init({ onLoad: 'check-sso', pkceMethod: 'S256' })
+    keycloak.init({ 
+      onLoad: 'check-sso', 
+      pkceMethod: 'S256',
+      silentCheckSsoRedirectUri: `${window.location.origin}/silent-check-sso.html`
+    })
       .then(authenticated => {
         setAuth({ keycloak: keycloak, authenticated: authenticated });
       })
@@ -19,7 +23,7 @@ function App() {
   }, []);
 
   if (!auth.keycloak) {
-    return <div>Loading Keycloak...</div>;
+    return <div className="loading-state">Initializing Authentication...</div>;
   }
 
   return (
@@ -41,6 +45,7 @@ function App() {
 }
 
 export default App;
+
 
 
 

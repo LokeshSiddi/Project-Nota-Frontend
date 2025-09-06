@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { X, Share2, Trash2 } from 'lucide-react';
 
-const NoteEditor = ({ onSubmit, noteToEdit, onCancel }) => {
+const NoteEditor = ({ noteToEdit, onSubmit, onCancel }) => {
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');
 
@@ -13,37 +14,45 @@ const NoteEditor = ({ onSubmit, noteToEdit, onCancel }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (title.trim() && content.trim()) {
+    if (title.trim()) {
       onSubmit({ title, content });
-      if (!noteToEdit) {
-        setTitle('');
-        setContent('');
-      }
     }
   };
 
   return (
-    <form onSubmit={handleSubmit} className="note-editor">
-      <h3>{noteToEdit ? 'Edit Note' : 'Create a New Note'}</h3>
-      <input
-        type="text"
-        value={title}
-        onChange={(e) => setTitle(e.target.value)}
-        placeholder="Note Title"
-        required
-      />
-      <textarea
-        value={content}
-        onChange={(e) => setContent(e.target.value)}
-        placeholder="What's on your mind?"
-        rows={4}
-        required
-      />
-      <div className="editor-actions">
-        <button type="submit">{noteToEdit ? 'Save Changes' : 'Add Note'}</button>
-        {noteToEdit && <button type="button" onClick={onCancel}>Cancel</button>}
+    <div className="modal-overlay">
+      <div className="modal-content">
+        <header className="modal-header">
+          <h2>{noteToEdit ? 'Edit Note' : 'New Note'}</h2>
+          <div className="modal-actions">
+            <button className="icon-button"><Share2 size={20} /></button>
+            <button className="icon-button"><Trash2 size={20} /></button>
+            <button className="icon-button" onClick={onCancel}><X size={24} /></button>
+          </div>
+        </header>
+        <form onSubmit={handleSubmit} className="note-form">
+          <input
+            type="text"
+            className="note-title-input"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="Title"
+            required
+          />
+          <textarea
+            className="note-content-textarea"
+            value={content}
+            onChange={(e) => setContent(e.target.value)}
+            placeholder="Start writing..."
+            rows={10}
+          />
+          <div className="form-footer">
+            <button type="button" className="cancel-button" onClick={onCancel}>Cancel</button>
+            <button type="submit" className="save-button">Save</button>
+          </div>
+        </form>
       </div>
-    </form>
+    </div>
   );
 };
 
