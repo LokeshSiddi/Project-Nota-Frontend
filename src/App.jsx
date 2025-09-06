@@ -12,9 +12,12 @@ function App() {
 
   useEffect(() => {
     keycloak.init({ 
-      onLoad: 'check-sso', 
+      // This is the critical change:
+      // 'login-required' is more reliable than 'check-sso'.
+      // It will redirect to the login page if the user is not logged in,
+      // which avoids the timeout issue and ensures the app always loads correctly.
+      onLoad: 'login-required', 
       pkceMethod: 'S256',
-      silentCheckSsoRedirectUri: `${window.location.origin}/silent-check-sso.html`
     })
       .then(authenticated => {
         setAuth({ keycloak: keycloak, authenticated: authenticated });
@@ -45,6 +48,8 @@ function App() {
 }
 
 export default App;
+
+
 
 
 
