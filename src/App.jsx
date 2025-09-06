@@ -16,7 +16,7 @@ function App() {
       // 'login-required' is more reliable than 'check-sso'.
       // It will redirect to the login page if the user is not logged in,
       // which avoids the timeout issue and ensures the app always loads correctly.
-      onLoad: 'login-required', 
+      onLoad: 'check-sso', 
       pkceMethod: 'S256',
     })
       .then(authenticated => {
